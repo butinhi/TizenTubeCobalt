@@ -30,6 +30,7 @@
   <!-- This is needed when targeting API 28+ to use foreground services -->
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
   <!-- https://iabtechlab.com/OTT-IFA, AdvertisingIdClient.Info.getId() -->
   <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
@@ -70,7 +71,15 @@
         <data android:pathPattern=".*"/>
       </intent-filter>
     </activity>
-
+    <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths" />
+    </provider>
   </application>
 
   <queries>

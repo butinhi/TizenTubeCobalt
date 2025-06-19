@@ -817,4 +817,64 @@ public class StarboardBridge {
       ((CobaltActivity) activity).setPreferMinimalPostProcessing(value);
     }
   }
+
+  @SuppressWarnings("unused")
+  @UsedByNative
+  protected boolean installAppFromURL(String url) {
+    java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+    android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    executor.execute(() -> {
+      java.io.File apkFile = new java.io.File(appContext.getFilesDir(), "downloaded_app.apk");
+      boolean success = false;
+      try (java.io.InputStream in = new java.net.URL(url).openStream();
+           java.io.OutputStream out = new java.io.FileOutputStream(apkFile)) {
+        byte[] buffer = new byte[8192];
+        int len;
+        long total = 0;
+        while ((len = in.read(buffer)) != -1) {
+          out.write(buffer, 0, len);
+          total += len;
+        }
+        out.flush();
+        success = true;
+      } catch (Exception e) {
+      }
+      if (success) {
+        mainHandler.post(() -> {
+          try {
+            android.net.Uri contentUri = androidx.core.content.FileProvider.getUriForFile(
+                appContext,
+                appContext.getPackageName() + ".fileprovider",
+                apkFile);
+            android.content.Intent installIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+            installIntent.setDataAndType(contentUri, "application/vnd.android.package-archive");
+            installIntent.setFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION | android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            Activity activity = activityHolder.get();
+            if (activity != null) {
+              activity.startActivity(installIntent);
+            } else {
+              appContext.startActivity(installIntent);
+            }
+          } catch (Exception e) {
+          }
+        });
+      } else {
+      }
+      executor.shutdown();
+    });
+    return true;
+  }
+
+  @SuppressWarnings("unused")
+  @UsedByNative
+    protected String getVersion() {
+    try {
+      android.content.pm.PackageInfo packageInfo =
+          appContext.getPackageManager().getPackageInfo(appContext.getPackageName(), 0);
+      return packageInfo.versionName;
+    } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+      Log.e(TAG, "Failed to get package info", e);
+      return "unknown";
+    }
+  }
 }

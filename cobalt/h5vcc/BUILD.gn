@@ -56,6 +56,8 @@ static_library("h5vcc") {
     "h5vcc_storage.h",
     "h5vcc_system.cc",
     "h5vcc_system.h",
+    "h5vcc_tizen_tube.cc",
+    "h5vcc_tizen_tube.h",
     "h5vcc_trace_event.cc",
     "h5vcc_trace_event.h",
   ]
